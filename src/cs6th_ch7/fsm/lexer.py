@@ -66,3 +66,8 @@ class Direct:
                         valid = False
 
         return valid, sign * magnitude if valid else None
+
+
+class HexDirect:
+    def parse(self, text: str):
+        return False, None

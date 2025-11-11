@@ -1,5 +1,5 @@
 import argparse
-from .fsm.lexer import Direct, Table
+from .fsm.lexer import Direct, Table, HexDirect
 import io
 from .pep10.lexer import Lexer
 from .pep10.code_gen import (
@@ -35,6 +35,16 @@ def exec_fsm_table(args):
 def exec_fsm_direct(args):
     text = text_from_args(args)
     p = Direct()
+    success, value = p.parse(text)
+    if not success:
+        print("Invalid Entry")
+    else:
+        print(f"Number = {value}")
+
+
+def exec_fsm_hex(args):
+    text = text_from_args(args)
+    p = HexDirect()
     success, value = p.parse(text)
     if not success:
         print("Invalid Entry")
@@ -92,7 +102,7 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(required=True)
     parse_table = subparsers.add_parser(
-        "table", help="CLI for table-driven FSM in Figure 7.XX"
+        "table", help="CLI for table-lookup FSM of Figure 7.28"
     )
 
     parse_table.set_defaults(func=exec_fsm_table)
@@ -101,7 +111,7 @@ def main():
     parse_table_group.add_argument("--file")
 
     parse_fsm_direct = subparsers.add_parser(
-        "direct", help="CLI for direct FSM in Figure 7.XX"
+        "direct", help="CLI for direct-coded FSM of Figure 7.29"
     )
     parse_fsm_direct.set_defaults(func=exec_fsm_direct)
     parse_direct_group = parse_fsm_direct.add_mutually_exclusive_group(
@@ -109,6 +119,16 @@ def main():
     )
     parse_direct_group.add_argument("--text")
     parse_direct_group.add_argument("--file")
+
+    parse_fsm_hex = subparsers.add_parser(
+        "hexdirect", help="CLI for direct-coded FSM to scan hex string"
+    )
+    parse_fsm_hex.set_defaults(func=exec_fsm_hex)
+    parse_hex_group = parse_fsm_hex.add_mutually_exclusive_group(
+        required=True
+    )
+    parse_hex_group.add_argument("--text")
+    parse_hex_group.add_argument("--file")
 
     parse_lex = subparsers.add_parser("lex", help="Test bench for Pepp lexer")
     parse_lex.set_defaults(func=exec_lex)
