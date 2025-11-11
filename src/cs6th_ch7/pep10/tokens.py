@@ -2,6 +2,21 @@ from dataclasses import dataclass
 
 
 @dataclass
+class Identifier:
+    value: str
+
+
+@dataclass
+class Symbol:
+    value: str
+
+
+@dataclass
+class Comment:
+    value: str
+
+
+@dataclass
 class Empty: ...
 
 
@@ -21,21 +36,6 @@ class Decimal:
 @dataclass
 class Hex:
     value: int
-
-
-@dataclass
-class Comment:
-    value: str
-
-
-@dataclass
-class Identifier:
-    value: str
-
-
-@dataclass
-class Symbol:
-    value: str
 
 
 @dataclass
