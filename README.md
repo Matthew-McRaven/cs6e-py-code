@@ -26,16 +26,17 @@ During this process, we will notify PyCharm of the location of our python binary
 
 ![Here's a video of me adding a python interpreter instance to PyCharm.](https://github.com/user-attachments/assets/6c6475ea-878a-4a2d-b5c5-394a6f296523)
 
-**After setting up the project's interpreter, open up the IDE's terminal and execute `uv install` to download all dependencies.**
+**After setting up the project's interpreter, open up the IDE's terminal and execute `uv sync` to download all dependencies.**
 Failure to run this command will cause future terminal commands to fail.
 
 ## Helpful Terminal Commands
 
-| Task                     | Command                       |
-|--------------------------|-------------------------------|
-| Execute unit tests       | `pytest .`                    |
-| Format python code       | `black .`                     |
-| Verify type correctness  | `mypy --check-untyped-defs .` |
+| Task                    | Command    |
+|-------------------------|------------|
+| Install dependencies    | `uv sync`  |
+| Execute unit tests      | `pytest .` |
+| Format python code      | `black .`  |
+| Verify type correctness | `mypy .`   |
 
 ## Adding Terminal Commands as Runnable IDE Tasks
 We cannot easily ship IDE configuration files, meaning users will need to add run configurations on their own.
