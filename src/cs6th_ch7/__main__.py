@@ -1,4 +1,7 @@
 import argparse
+
+from cs6th_ch7.expr.code_gen import expression_string
+from cs6th_ch7.expr.parser import ExpressionParser
 from .fsm.lexer import Direct, Table, HexDirect
 import io
 from .pep10.lexer import Lexer
@@ -85,6 +88,14 @@ def generate_code_wrapper(parse_tree):
     )
 
 
+def exec_expr(args):
+    text = text_from_args(args)
+    # Remove trailing whitespace while insuring input is \n terminated.
+    buffer = io.StringIO(text.rstrip() + "\n")
+    parser = ExpressionParser(buffer)
+    print(expression_string(parser.E()))
+
+
 def exec_parser(args):
     text = text_from_args(args)
     for line in parse_wrapper(text):
@@ -135,6 +146,14 @@ def main():
     parse_lex_group = parse_lex.add_mutually_exclusive_group(required=True)
     parse_lex_group.add_argument("--text")
     parse_lex_group.add_argument("--file")
+
+    parse_expr = subparsers.add_parser(
+        "expr", help="Test bench for Expression Parser"
+    )
+    parse_expr.set_defaults(func=exec_expr)
+    parse_expr_group = parse_expr.add_mutually_exclusive_group(required=True)
+    parse_expr_group.add_argument("--text")
+    parse_expr_group.add_argument("--file")
 
     parse_parser = subparsers.add_parser(
         "parser", help="Test bench for Pepp parser"
