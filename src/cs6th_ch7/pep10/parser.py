@@ -11,7 +11,7 @@ from .mnemonics import (
 from .symbol import SymbolTable, SymbolEntry
 import cs6th_ch7.pep10.tokens as tokens
 from .types import ArgumentType, ParseTreeNode
-from cs6th_ch7.pep10.buffer import ParserBuffer
+from cs6th_ch7.utils.buffer import ParserBuffer
 
 """
 1. argument          ::= HEX | DECIMAL | IDENTIFIER

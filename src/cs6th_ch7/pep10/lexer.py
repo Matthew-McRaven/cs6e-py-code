@@ -6,7 +6,7 @@ from typing import Literal, List
 
 import cs6th_ch7.pep10.tokens as tokens
 from .tokens import Token
-from cs6th_ch7.pep10.buffer import TokenProducer
+from cs6th_ch7.utils.buffer import TokenProducer
 
 
 class Lexer(TokenProducer[Token]):
