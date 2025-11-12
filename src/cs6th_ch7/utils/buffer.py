@@ -22,9 +22,6 @@ class ParserBuffer(Generic[T]):
                 return None
         return self._buffer[0]
 
-    def push(self, value: T):
-        self._buffer.append(value)
-
     def may_match[T](self, expected: Type[T]) -> T | None:
         if (token := self.peek()) and type(token) is expected:
             return cast(T, self._buffer.pop(0))
@@ -35,6 +32,9 @@ class ParserBuffer(Generic[T]):
             return ret
         raise SyntaxError()
 
+    def push(self, value: T):
+        self._buffer.append(value)
+        
     def skip_to_next_line[T](self, eol_markers: Set[T]):
         while (
             type(token := self.peek()) not in eol_markers and token is not None
