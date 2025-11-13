@@ -53,7 +53,7 @@ BR_INSTRUCTIONS = [
     for suffix in ["", "LE", "LT", "EQ", "NE", "GE", "GT", "V", "C"]
 ]
 A_IX_INSTRUCTIONS = BR_INSTRUCTIONS + ["CALL"]
-RAAA_prefixes = ["ADD", "SUB", "AND", "OR", "XOR", "CPW", "CPB", "LDW"]
+RAAA_prefixes = ["ADD", "SUB", "AND", "OR", "XOR", "CPW", "CPB", "LDW", "LDB"]
 
 INSTRUCTION_TYPES: Dict[str, InstructionType] = {
     **{instr: InstructionType.M for instr in M_INSTRUCTIONS},
