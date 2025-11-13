@@ -80,9 +80,10 @@ class Parser:
             addr = cast(AddressingMode, AddressingMode[addr_str])
             mn_type = INSTRUCTION_TYPES[mn_str]
             if not mn_type.allows_addressing_mode(addr):
-                raise SyntaxError()
+                err = f"Invalid addressing mode {addr_str} for {mn_str}"
+                raise SyntaxError(err)
         except KeyError:
-            raise SyntaxError()
+            raise SyntaxError(f"Unknown addressing mode: {addr_str}")
 
         return DyadicLine(mn_str, argument, addr, sym=symbol)
 
@@ -114,10 +115,9 @@ class Parser:
         elif (code := self.line()) is not None:
             line = code
         else:
-            raise SyntaxError()
+            raise SyntaxError("Failed to parse line")
 
         self._buffer.must_match(tokens.Empty)
-
         return line
 
 
