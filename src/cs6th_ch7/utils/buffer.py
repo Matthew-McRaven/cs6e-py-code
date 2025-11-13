@@ -34,7 +34,7 @@ class ParserBuffer(Generic[T]):
 
     def push(self, value: T):
         self._buffer.append(value)
-        
+
     def skip_to_next_line[T](self, eol_markers: Set[T]):
         while (
             type(token := self.peek()) not in eol_markers and token is not None

@@ -1,6 +1,6 @@
 import argparse
 
-from cs6th_ch7.expr.code_gen import expression_string
+from cs6th_ch7.expr.code_gen import expression_string, to_pep10_ir
 from cs6th_ch7.expr.parser import ExpressionParser
 from .fsm.lexer import Direct, Table, HexDirect
 import io
@@ -93,7 +93,15 @@ def exec_expr(args):
     # Remove trailing whitespace while insuring input is \n terminated.
     buffer = io.StringIO(text.rstrip() + "\n")
     parser = ExpressionParser(buffer)
-    print(expression_string(parser.E()))
+    expr_tokens = parser.E()
+    print(expression_string(expr_tokens))
+    ir_lines = to_pep10_ir(expr_tokens)
+    ir, ir_errors = generate_code(ir_lines)
+    if len(ir_errors) > 0:
+        for ir_error in ir_errors:
+            print(ir_error, file=sys.stderr)
+        raise SyntaxError("Failed to generate object code")
+    print("".join(hex(x)[2:] for x in program_object_code(ir)))
 
 
 def exec_parser(args):
@@ -135,9 +143,7 @@ def main():
         "hexdirect", help="CLI for direct-coded FSM to scan hex string"
     )
     parse_fsm_hex.set_defaults(func=exec_fsm_hex)
-    parse_hex_group = parse_fsm_hex.add_mutually_exclusive_group(
-        required=True
-    )
+    parse_hex_group = parse_fsm_hex.add_mutually_exclusive_group(required=True)
     parse_hex_group.add_argument("--text")
     parse_hex_group.add_argument("--file")
 

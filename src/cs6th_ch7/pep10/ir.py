@@ -122,6 +122,42 @@ class DyadicLine:
         return f"DyadicLine({','.join(components)})"
 
 
+class MonadicLine:
+    def __init__(
+        self,
+        mn: str,
+        sym: SymbolEntry | None = None,
+        comment: str | None = None,
+    ):
+        self.symbol_decl: SymbolEntry | None = sym
+        mn = mn.upper()
+        assert mn in INSTRUCTION_TYPES
+        self.mnemonic = mn
+        self.comment: str | None = comment
+        self.address: int | None = None
+
+    def source(self) -> str:
+        mn = self.mnemonic.upper()
+        return source(mn, [], self.symbol_decl, self.comment)
+
+    def object_code(self) -> bytearray:
+        bits = as_int(self.mnemonic)
+        mn_bytes = bits.to_bytes(1, signed=False)
+        return bytearray(mn_bytes)
+
+    def __len__(self) -> int:
+        return 1
+
+    def __repr__(self):
+        symbol_text = f"{self.symbol_decl}:" if self.symbol_decl else ""
+        components = [f"'{symbol_text}{self.mnemonic}'"]
+        if self.comment:
+            components.append(f"comment={self.comment}")
+        if self.address:
+            components.append(f"address={self.address}")
+        return f"MonadicLine({','.join(components)})"
+
+
 def listing(ir: Listable) -> List[str]:
     object_code = ir.object_code()
     oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
