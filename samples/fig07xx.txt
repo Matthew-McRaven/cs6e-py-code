@@ -1,0 +1,9 @@
+    start:BR main,i
+    ; SUBX,i is ASCII 'h'
+    h:SuBx 0xFEED,i
+
+    main:ldba h,d
+    stba charOut,d
+    adda 1,i     ;Increment accumulator to convert h to i
+    stba charOut,d
+    stba pwrOff,d

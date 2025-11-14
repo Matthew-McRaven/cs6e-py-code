@@ -1,0 +1,5 @@
+    start: ;BR main,i
+    LDWY  0xFEED,y
+    ADDA  0x10000,i
+    SUBSP 15, y
+    STWA  0,i
