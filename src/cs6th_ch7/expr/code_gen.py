@@ -1,10 +1,9 @@
-from typing import List
+from typing import List, cast, Sequence
 import cs6th_ch7.expr.tokens as tokens
 from .tokens import Token
 from ..pep10.arguments import Decimal, Identifier
 from ..pep10.symbol import SymbolTable
-from ..pep10.types import Listable
-from ..pep10.ir import DyadicLine, MonadicLine
+from ..pep10.ir import DyadicLine, MonadicLine, ListableLine
 from ..pep10.mnemonics import AddressingMode as AM
 
 
@@ -12,23 +11,30 @@ def expression_string(expression: List[Token]) -> str:
     return " ".join(token.postfix_format() for token in expression)
 
 
-def plus_ir(symbol_table: SymbolTable) -> List[Listable]:
+def plus_ir(symbol_table: SymbolTable) -> List[ListableLine]:
     return [
-        DyadicLine("LDWA", Decimal(2), AM.S, sym=symbol_table.define("plus")),
+        DyadicLine(
+            "LDWA", Decimal(2), AM.S, symbol_decl=symbol_table.define("plus")
+        ),
         DyadicLine("ADDA", Decimal(4), AM.S),
         MonadicLine("RET"),
     ]
 
 
-def times_ir(symbol_table: SymbolTable) -> List[Listable]:
+def times_ir(symbol_table: SymbolTable) -> List[ListableLine]:
     arg1, arg2, tmp = 6, 4, 0
     return [
-        DyadicLine("SUBSP", Decimal(2), AM.I, sym=symbol_table.define("times")),
+        DyadicLine(
+            "SUBSP", Decimal(2), AM.I, symbol_decl=symbol_table.define("times")
+        ),
         # Initialize accumulation variable to 0
         DyadicLine("LDWA", Decimal(0), AM.I),
         DyadicLine("STWA", Decimal(tmp), AM.S),
         DyadicLine(
-            "LDWA", Decimal(arg1), AM.S, sym=symbol_table.define("b_loop")
+            "LDWA",
+            Decimal(arg1),
+            AM.S,
+            symbol_decl=symbol_table.define("b_loop"),
         ),
         DyadicLine("LDWX", Decimal(arg2), AM.S),
         DyadicLine("BREQ", Identifier(symbol_table.reference("e_loop")), AM.I),
@@ -39,28 +45,32 @@ def times_ir(symbol_table: SymbolTable) -> List[Listable]:
         DyadicLine("STWA", Decimal(tmp), AM.S),
         DyadicLine("LDWA", Decimal(arg1), AM.S),
         # Shift A/X and write back
-        MonadicLine("ASLA", sym=symbol_table.define("noadd")),
+        MonadicLine("ASLA", symbol_decl=symbol_table.define("noadd")),
         DyadicLine("STWA", Decimal(arg1), AM.S),
         DyadicLine("LDWX", Decimal(arg2), AM.S),
         MonadicLine("ASRX"),
         DyadicLine("STWX", Decimal(arg2), AM.S),
         DyadicLine("BR", Identifier(symbol_table.reference("b_loop")), AM.I),
         DyadicLine(
-            "LDWA", Decimal(tmp), AM.S, sym=symbol_table.define("e_loop")
+            "LDWA",
+            Decimal(tmp),
+            AM.S,
+            symbol_decl=symbol_table.define("e_loop"),
         ),
         DyadicLine("ADDSP", Decimal(2), AM.I),
         MonadicLine("RET"),
     ]
 
 
-def to_pep10_ir(expression: List[Token]) -> List[Listable]:
+def to_pep10_ir(expression: List[Token]) -> Sequence[ListableLine]:
     symbol_table = SymbolTable()
-    ret: List[Listable] = []
+    ret: List[ListableLine] = []
     for token in expression:
         match type(token):
             case tokens.Decimal:
+                casted = cast(Decimal, token)
                 ret.append(DyadicLine("SUBSP", Decimal(2), AM.I))
-                ret.append(DyadicLine("LDWA", Decimal(token.value), AM.I))
+                ret.append(DyadicLine("LDWA", Decimal(casted.value), AM.I))
                 ret.append(DyadicLine("STWA", Decimal(0), AM.S))
             case tokens.Plus:
                 sym_plus = symbol_table.reference("plus")

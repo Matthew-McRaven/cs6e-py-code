@@ -1,5 +1,12 @@
 from .symbol import SymbolEntry
 
+from typing import Protocol
+
+
+class ArgumentType(Protocol):
+    def __str__(self) -> str: ...
+    def __int__(self) -> int: ...
+
 
 class Identifier:
     def __init__(self, symbol: SymbolEntry):

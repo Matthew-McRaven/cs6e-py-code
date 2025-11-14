@@ -15,6 +15,7 @@ from cs6th_ch7.pep10.ir import (
     DyadicLine,
     EmptyLine,
     ErrorLine,
+    MonadicLine,
 )
 from cs6th_ch7.pep10.macro import MacroRegistry
 from cs6th_ch7.pep10.mnemonics import AddressingMode

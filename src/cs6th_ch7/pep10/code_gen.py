@@ -1,29 +1,30 @@
 import itertools
-from typing import List, Tuple, cast
+from typing import List, Tuple, cast, Sequence
 
-from .arguments import Identifier
-from .ir import Listable, listing, ErrorLine
-
+from .arguments import Identifier, ArgumentType
+from .ir import ListableLine, AddressableLine, listing, ErrorLine, IRLine
 from .symbol import SymbolEntry
-from .types import ParseTreeNode, ArgumentType
 
 
 def generate_code(
-    parse_tree: List[ParseTreeNode], base_address=0
-) -> Tuple[List[Listable], List[str]]:
+    parse_tree: Sequence[IRLine], base_address=0
+) -> Tuple[List[ListableLine], List[str]]:
     errors: List[str] = []
-    ir: List[Listable] = []
+    ir: List[ListableLine] = []
     address = base_address
     for node in parse_tree:
         if isinstance(node, ErrorLine):
             errors.append(node.source())
             continue
-        elif isinstance(node, Listable):
+        elif isinstance(node, AddressableLine):
             ir.append(node)
+        elif isinstance(node, ListableLine):
+            ir.append(node)
+            continue
         else:
             continue
 
-        line: Listable = cast(Listable, node)
+        line: AddressableLine = cast(AddressableLine, node)
         line.address = address
         # Check for multiply defined symbols, and assign addresses to symbol declarations
         if maybe_symbol := getattr(node, "symbol_decl", None):
@@ -43,15 +44,15 @@ def generate_code(
     return ir, errors
 
 
-def program_object_code(program: List[Listable]) -> bytearray:
+def program_object_code(program: List[ListableLine]) -> bytearray:
     oc = itertools.chain.from_iterable((line.object_code() for line in program))
     return bytearray(oc)
 
 
-def program_source(program: List[Listable]) -> List[str]:
+def program_source(program: List[ListableLine]) -> List[str]:
     return [line.source() for line in program]
 
 
-def program_listing(program: List[Listable]) -> List[str]:
+def program_listing(program: List[ListableLine]) -> List[str]:
     lst = itertools.chain.from_iterable(listing(line) for line in program)
     return list(lst)

@@ -25,7 +25,7 @@ def text_from_args(args):
         with open(args.file, "r") as f:
             return "".join(f.readlines())
     else:
-        raise argparse.ArgumentError("Expected either text or file")
+        raise RuntimeError("Expected either text or file")
 
 
 def exec_fsm_table(args):

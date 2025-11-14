@@ -1,15 +1,26 @@
 import itertools
-from typing import List, TypeAlias, Literal
+from typing import List, Protocol, runtime_checkable
+from dataclasses import dataclass
 
-from .arguments import StringConstant
-from .mnemonics import (
-    AddressingMode,
-    INSTRUCTION_TYPES,
-    BITS,
-    as_int,
-)
 from .symbol import SymbolEntry
-from .types import ArgumentType, Listable, ParseTreeNode
+from .mnemonics import AddressingMode, INSTRUCTION_TYPES, as_int
+from .arguments import ArgumentType
+
+
+class IRLine(Protocol):
+    def source(self) -> str: ...
+
+
+@runtime_checkable
+class ListableLine(IRLine, Protocol):
+    def source(self) -> str: ...
+    def object_code(self) -> bytearray: ...
+    def __len__(self) -> int: ...
+
+
+@runtime_checkable
+class AddressableLine(ListableLine, Protocol):
+    address: int | None
 
 
 def source(
@@ -23,10 +34,9 @@ def source(
     return f"{sym_str:7}{op:7}{','.join(args):12}{comment_str}"
 
 
+@dataclass
 class ErrorLine:
-    def __init__(self, error: str | None = None) -> None:
-        self.comment: str | None = error
-        self.address: int | None = None
+    comment: str | None = None
 
     def source(self) -> str:
         message = self.comment or "Failed to parse line"
@@ -42,10 +52,8 @@ class ErrorLine:
         return f"ErrorLine('{self.source()}')"
 
 
+@dataclass
 class EmptyLine:
-    def __init__(self) -> None:
-        self.comment: str | None = None
-        self.address: int | None = None
 
     def source(self) -> str:
         return source("", [], None, None)
@@ -60,10 +68,9 @@ class EmptyLine:
         return f"EmptyLine()"
 
 
+@dataclass
 class CommentLine:
-    def __init__(self, comment: str):
-        self.comment: str | None = comment
-        self.address: int | None = None
+    comment: str
 
     def source(self) -> str:
         return source("", [], None, self.comment)
@@ -78,23 +85,14 @@ class CommentLine:
         return f"CommentLine('{self.comment}')"
 
 
+@dataclass
 class DyadicLine:
-    def __init__(
-        self,
-        mn: str,
-        argument: ArgumentType,
-        am: AddressingMode,
-        sym: SymbolEntry | None = None,
-        comment: str | None = None,
-    ):
-        self.symbol_decl: SymbolEntry | None = sym
-        mn = mn.upper()
-        assert mn in INSTRUCTION_TYPES
-        self.mnemonic = mn
-        self.addressing_mode: AddressingMode = am
-        self.argument: ArgumentType = argument
-        self.comment: str | None = comment
-        self.address: int | None = None
+    mnemonic: str
+    argument: ArgumentType
+    addressing_mode: AddressingMode
+    symbol_decl: SymbolEntry | None = None
+    comment: str | None = None
+    address: int | None = None
 
     def source(self) -> str:
         args = [str(self.argument), self.addressing_mode.name.lower()]
@@ -110,6 +108,11 @@ class DyadicLine:
     def __len__(self) -> int:
         return 3
 
+    def __post_init__(self):
+        if not self.mnemonic.isupper():
+            self.mnemonic = self.mnemonic.upper()
+        assert self.mnemonic in INSTRUCTION_TYPES
+
     def __repr__(self):
         symbol_text = f"{self.symbol_decl}:" if self.symbol_decl else ""
         components = [
@@ -122,19 +125,12 @@ class DyadicLine:
         return f"DyadicLine({','.join(components)})"
 
 
+@dataclass
 class MonadicLine:
-    def __init__(
-        self,
-        mn: str,
-        sym: SymbolEntry | None = None,
-        comment: str | None = None,
-    ):
-        self.symbol_decl: SymbolEntry | None = sym
-        mn = mn.upper()
-        assert mn in INSTRUCTION_TYPES
-        self.mnemonic = mn
-        self.comment: str | None = comment
-        self.address: int | None = None
+    mnemonic: str
+    symbol_decl: SymbolEntry | None = None
+    comment: str | None = None
+    address: int | None = None
 
     def source(self) -> str:
         mn = self.mnemonic.upper()
@@ -148,6 +144,11 @@ class MonadicLine:
     def __len__(self) -> int:
         return 1
 
+    def __post_init__(self):
+        if not self.mnemonic.isupper():
+            self.mnemonic = self.mnemonic.upper()
+        assert self.mnemonic in INSTRUCTION_TYPES
+
     def __repr__(self):
         symbol_text = f"{self.symbol_decl}:" if self.symbol_decl else ""
         components = [f"'{symbol_text}{self.mnemonic}'"]
@@ -158,7 +159,7 @@ class MonadicLine:
         return f"MonadicLine({','.join(components)})"
 
 
-def listing(ir: Listable) -> List[str]:
+def listing(ir: ListableLine) -> List[str]:
     object_code = ir.object_code()
     oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
     if len(object_code) <= 3:
@@ -166,8 +167,10 @@ def listing(ir: Listable) -> List[str]:
     else:
         line_object_code = object_code[0:2]
         object_code = object_code[3:]
-
-    address = f"{ir.address:04X}" if ir.address is not None else 4 * " "
+    if isinstance(ir, AddressableLine):
+        address = f"{ir.address:04X}" if ir.address is not None else 4 * " "
+    else:
+        address = 4 * " "
     lines = [f"{address} {oc_format(line_object_code):6} {ir.source()}"]
     for b in itertools.batched(object_code, 3):
         lines.append(f"{'':4} {oc_format(b): 6}")

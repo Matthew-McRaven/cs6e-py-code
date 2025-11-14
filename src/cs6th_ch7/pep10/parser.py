@@ -1,16 +1,14 @@
 import io
 from typing import cast, List
 from .arguments import Hexadecimal, Decimal, Identifier
+from .ir import IRLine
 from .ir import EmptyLine, ErrorLine, CommentLine, DyadicLine
 from .macro import MacroRegistry
 from .lexer import Lexer
-from .mnemonics import (
-    INSTRUCTION_TYPES,
-    AddressingMode,
-)
+from .mnemonics import INSTRUCTION_TYPES, AddressingMode
 from .symbol import SymbolTable, SymbolEntry
 import cs6th_ch7.pep10.tokens as tokens
-from .types import ArgumentType, ParseTreeNode
+from .arguments import ArgumentType
 from cs6th_ch7.utils.buffer import ParserBuffer
 
 """
@@ -34,14 +32,14 @@ class Parser:
     def __iter__(self):
         return self
 
-    def __next__(self) -> ParseTreeNode:
+    def __next__(self) -> IRLine:
         if self._buffer.peek() is None:
             raise StopIteration()
         try:
             return self.statement()
         except SyntaxError as s:
             self._buffer.skip_to_next_line({tokens.Empty})
-            return ErrorLine(error=s.msg if s.msg else None)
+            return ErrorLine(comment=s.msg if s.msg else None)
         except KeyError:
             self._buffer.skip_to_next_line({tokens.Empty})
             return ErrorLine()
@@ -85,11 +83,11 @@ class Parser:
         except KeyError:
             raise SyntaxError(f"Unknown addressing mode: {addr_str}")
 
-        return DyadicLine(mn_str, argument, addr, sym=symbol)
+        return DyadicLine(mn_str, argument, addr, symbol_decl=symbol)
 
     # line              ::= instruction [COMMENT]
     def line(self, symbol: SymbolEntry | None = None) -> DyadicLine | None:
-        line: ParseTreeNode | None = None
+        line: IRLine | None = None
         if instr := self.instruction(symbol=symbol):
             line = instr
         else:
@@ -100,8 +98,8 @@ class Parser:
         return line
 
     # statement         ::= [COMMENT  | [SYMBOL] line] EMPTY
-    def statement(self) -> ParseTreeNode:
-        line: ParseTreeNode | None = None
+    def statement(self) -> IRLine:
+        line: IRLine | None = None
         if self._buffer.may_match(tokens.Empty):
             return EmptyLine()
         elif comment := self._buffer.may_match(tokens.Comment):
@@ -125,7 +123,7 @@ def parse(
     text: str,
     symbol_table: SymbolTable | None = None,
     macro_registry: MacroRegistry | None = None,
-) -> List[ParseTreeNode]:
+) -> List[IRLine]:
     # Remove trailing whitespace while insuring input is \n terminated.
     parser = Parser(
         io.StringIO(text.rstrip() + "\n"),
