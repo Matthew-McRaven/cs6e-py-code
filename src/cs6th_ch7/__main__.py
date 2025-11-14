@@ -6,7 +6,7 @@ from .fsm.lexer import Direct, Table, HexDirect
 import io
 from .pep10.lexer import Lexer
 from .pep10.code_gen import (
-    generate_code,
+    calculate_addresses,
     program_object_code,
     program_listing,
     program_source,
@@ -76,7 +76,7 @@ def generate_code_wrapper(parse_tree):
         for error in parse_errors:
             print(error, file=sys.stderr)
         raise SyntaxError("Failed to parse program")
-    ir, ir_errors = generate_code(parse_tree)
+    ir, ir_errors = calculate_addresses(parse_tree)
     if len(ir_errors) > 0:
         for ir_error in ir_errors:
             print(ir_error, file=sys.stderr)
@@ -96,7 +96,7 @@ def exec_expr(args):
     expr_tokens = parser.E()
     print(expression_string(expr_tokens))
     ir_lines = to_pep10_ir(expr_tokens)
-    ir, ir_errors = generate_code(ir_lines)
+    ir, ir_errors = calculate_addresses(ir_lines)
     if len(ir_errors) > 0:
         for ir_error in ir_errors:
             print(ir_error, file=sys.stderr)

@@ -1,5 +1,5 @@
 import pytest
-from cs6th_ch7.pep10.code_gen import program_object_code, generate_code
+from cs6th_ch7.pep10.code_gen import program_object_code, calculate_addresses
 from cs6th_ch7.pep10.ir import CommentLine, EmptyLine
 from cs6th_ch7.pep10.parser import parse
 from cs6th_ch7.pep10.symbol import SymbolTable
@@ -8,7 +8,7 @@ from cs6th_ch7.pep10.symbol import SymbolTable
 @pytest.mark.skip("Implement in Problem 7.##")  # FIGURE ONLY
 def test_unary_object_code():
     parse_tree = parse("NOTA\nNOTA\nRET\n")
-    ir, errors = generate_code(parse_tree)
+    ir, errors = calculate_addresses(parse_tree)
     assert len(errors) == 0
     assert len(parse_tree) == 3 and len(ir) == 3
     assert program_object_code(ir) == bytearray([0x1E, 0x1E, 0x1])
@@ -20,7 +20,7 @@ def test_nonunary_object_code():
     parse_tree = parse(
         "cat:BR 3,i\ndog:ADDA 0x10,d\nCALL dog,i\n", symbol_table=st
     )
-    ir, errors = generate_code(parse_tree)
+    ir, errors = calculate_addresses(parse_tree)
     assert len(errors) == 0
     assert "cat" in st and int(st["cat"]) == 0
     assert "dog" in st and int(st["dog"]) == 3
@@ -33,7 +33,7 @@ def test_nonunary_object_code():
 
 def test_comment_empty():
     parse_tree = parse("\n;test comment")
-    ir, errors = generate_code(parse_tree)
+    ir, errors = calculate_addresses(parse_tree)
     assert len(errors) == 0
 
     assert len(parse_tree) == 2 and len(ir) == 2

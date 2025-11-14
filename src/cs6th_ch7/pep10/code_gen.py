@@ -6,7 +6,7 @@ from .ir import ListableLine, AddressableLine, listing, ErrorLine, IRLine
 from .symbol import SymbolEntry
 
 
-def generate_code(
+def calculate_addresses(
     parse_tree: Sequence[IRLine], base_address=0
 ) -> Tuple[List[ListableLine], List[str]]:
     errors: List[str] = []
