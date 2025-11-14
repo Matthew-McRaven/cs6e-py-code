@@ -11,6 +11,8 @@ class ExpressionParser:
         self._lexer = Lexer(buffer)
         self._buffer = ParserBuffer(self._lexer)
 
+    # 3. <F> -> ( <E> ) 
+    # 4. <F> -> DECIMAL
     def F(self) -> list[Token]:
         if self._buffer.may_match(tokens.ParenOpen):
             e = self.E()
@@ -18,6 +20,7 @@ class ExpressionParser:
             return e
         return [self._buffer.must_match(tokens.Decimal)]
 
+    # 2. <T> -> <F> [* <T>]
     def T(self) -> list[Token]:
         f = self.F()
         if times := self._buffer.may_match(tokens.Times):
@@ -25,6 +28,7 @@ class ExpressionParser:
             return [*f, *t, times]
         return f
 
+    # 1. <E> -> <T> [+ <E>]
     def E(self) -> list[Token]:
         t = self.T()
         if plus := self._buffer.may_match(tokens.Plus):
