@@ -1,4 +1,4 @@
-from typing import List, Type, cast, TypeVar, Generic, Set, Protocol
+from typing import List, Type, cast, Set, Protocol
 
 
 class TokenProducer[T](Protocol):
@@ -6,15 +6,12 @@ class TokenProducer[T](Protocol):
     def __next__(self) -> T: ...
 
 
-T = TypeVar("T")
-
-
-class ParserBuffer(Generic[T]):
-    def __init__(self, producer: TokenProducer[T]):
+class ParserBuffer:
+    def __init__(self, producer: TokenProducer):
         self._producer = producer
-        self._buffer: List[T] = []
+        self._buffer: List = []
 
-    def peek(self) -> T | None:
+    def peek(self):
         if len(self._buffer) == 0:
             try:
                 self._buffer.append(next(self._producer))
@@ -22,17 +19,17 @@ class ParserBuffer(Generic[T]):
                 return None
         return self._buffer[0]
 
-    def may_match[T](self, expected: Type[T]) -> T | None:
-        if (token := self.peek()) and type(token) is expected:
-            return cast(T, self._buffer.pop(0))
+    def may_match(self, expected_type):
+        if (token := self.peek()) and type(token) is expected_type:
+            return self._buffer.pop(0)
         return None
 
-    def must_match[T](self, expected: Type[T]) -> T:
-        if ret := self.may_match(expected):
+    def must_match(self, expected_type):
+        if ret := self.may_match(expected_type):
             return ret
         raise SyntaxError()
 
-    def push(self, value: T):
+    def push(self, value):
         self._buffer.append(value)
 
     def skip_to_next_line[T](self, eol_markers: Set[T]):
