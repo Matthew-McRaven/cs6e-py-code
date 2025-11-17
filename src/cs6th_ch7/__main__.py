@@ -96,6 +96,7 @@ def exec_expr(args):
     expr_tokens = parser.E()
     print(expression_string(expr_tokens))
 
+
 def exec_expr_codegen(args):
     text = text_from_args(args)
     # Remove trailing whitespace while insuring input is \n terminated.
@@ -109,8 +110,6 @@ def exec_expr_codegen(args):
             print(ir_error, file=sys.stderr)
         raise SyntaxError("Failed to generate object code")
     print("\n".join(x for x in program_listing(ir)))
-
-
 
 
 def exec_parser(args):
@@ -130,7 +129,8 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     parse_table = subparsers.add_parser(
-        "table", help="A table-lookup FSM to recognize identifiers (Figure 7.28)"
+        "table",
+        help="A table-lookup FSM to recognize identifiers (Figure 7.28)",
     )
 
     parse_table.set_defaults(func=exec_fsm_table)
@@ -139,7 +139,8 @@ def main():
     parse_table_group.add_argument("--file")
 
     parse_fsm_direct = subparsers.add_parser(
-        "direct", help="A direct-coded FSM to scan signed decimals (Figure 7.29)"
+        "direct",
+        help="A direct-coded FSM to scan signed decimals (Figure 7.29)",
     )
     parse_fsm_direct.set_defaults(func=exec_fsm_direct)
     parse_direct_group = parse_fsm_direct.add_mutually_exclusive_group(
@@ -149,21 +150,25 @@ def main():
     parse_direct_group.add_argument("--file")
 
     parse_fsm_hex = subparsers.add_parser(
-        "hexdirect", help="A direct-coded FSM to scan hex strings (Problem 7.18)"
+        "hexdirect",
+        help="A direct-coded FSM to scan hex strings (Problem 7.18)",
     )
     parse_fsm_hex.set_defaults(func=exec_fsm_hex)
     parse_hex_group = parse_fsm_hex.add_mutually_exclusive_group(required=True)
     parse_hex_group.add_argument("--text")
     parse_hex_group.add_argument("--file")
 
-    parse_lex = subparsers.add_parser("lex", help="A multiple-token lexical analyzer for Pep/10 (Figure 7.34")
+    parse_lex = subparsers.add_parser(
+        "lex", help="A multiple-token lexical analyzer for Pep/10 (Figure 7.34"
+    )
     parse_lex.set_defaults(func=exec_lex)
     parse_lex_group = parse_lex.add_mutually_exclusive_group(required=True)
     parse_lex_group.add_argument("--text")
     parse_lex_group.add_argument("--file")
 
     parse_expr = subparsers.add_parser(
-        "expr", help="A recursive descent parser for an expression grammar (Figure 7.41)"
+        "expr",
+        help="A recursive descent parser for an expression grammar (Figure 7.41)",
     )
     parse_expr.set_defaults(func=exec_expr)
     parse_expr_group = parse_expr.add_mutually_exclusive_group(required=True)
@@ -191,7 +196,8 @@ def main():
     parse_codegen_group.add_argument("--file")
 
     parse_compile = subparsers.add_parser(
-        "exprcode", help="A code generator for an expression grammar (Figure 7.xx)"
+        "exprcode",
+        help="A code generator for an expression grammar (Figure 7.xx)",
     )
     parse_compile.set_defaults(func=exec_expr_codegen)
     parse_compile = parse_compile.add_mutually_exclusive_group(required=True)
