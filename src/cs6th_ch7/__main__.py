@@ -32,7 +32,7 @@ def exec_fsm_table(args):
     text = text_from_args(args)
     p = Table()
     success = p.parse(text)
-    print(f"{text} is {'' if success else 'not'} a valid identifier")
+    print(f"{text} is{' ' if success else ' not '}a valid identifier")
 
 
 def exec_fsm_direct(args):
