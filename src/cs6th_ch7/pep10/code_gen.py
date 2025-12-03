@@ -2,15 +2,15 @@ import itertools
 from typing import List, Tuple, cast, Sequence
 
 from .arguments import Identifier, ArgumentType
-from .ir import ListableLine, AddressableLine, listing, ErrorLine, IRLine
+from .ir import AddressableLine, listing, ErrorLine, IRLine
 from .symbol import SymbolEntry
 
 
 def calculate_addresses(
     parse_tree: Sequence[IRLine], base_address=0
-) -> Tuple[List[ListableLine], List[str]]:
+) -> Tuple[List[IRLine], List[str]]:
     errors: List[str] = []
-    ir: List[ListableLine] = []
+    ir: List[IRLine] = []
     address = base_address
     for node in parse_tree:
         if isinstance(node, ErrorLine):
@@ -18,7 +18,7 @@ def calculate_addresses(
             continue
         elif isinstance(node, AddressableLine):
             ir.append(node)
-        elif isinstance(node, ListableLine):
+        elif isinstance(node, IRLine):
             ir.append(node)
             continue
         else:
@@ -44,15 +44,21 @@ def calculate_addresses(
     return ir, errors
 
 
-def program_object_code(program: List[ListableLine]) -> bytearray:
-    oc = itertools.chain.from_iterable((line.object_code() for line in program))
+def program_object_code(program: List[IRLine]) -> bytearray:
+    oc = itertools.chain.from_iterable(
+        (
+            line.object_code()
+            for line in program
+            if isinstance(line, AddressableLine)
+        )
+    )
     return bytearray(oc)
 
 
-def program_source(program: List[ListableLine]) -> List[str]:
+def program_source(program: List[IRLine]) -> List[str]:
     return [line.source() for line in program]
 
 
-def program_listing(program: List[ListableLine]) -> List[str]:
+def program_listing(program: List[IRLine]) -> List[str]:
     lst = itertools.chain.from_iterable(listing(line) for line in program)
     return list(lst)

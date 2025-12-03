@@ -7,20 +7,17 @@ from .mnemonics import AddressingMode, INSTRUCTION_TYPES, as_int
 from .arguments import ArgumentType
 
 
+@runtime_checkable
 class IRLine(Protocol):
     def source(self) -> str: ...
 
 
 @runtime_checkable
-class ListableLine(IRLine, Protocol):
-    def source(self) -> str: ...
+class AddressableLine(IRLine, Protocol):
+    address: int | None
+
     def object_code(self) -> bytearray: ...
     def __len__(self) -> int: ...
-
-
-@runtime_checkable
-class AddressableLine(ListableLine, Protocol):
-    address: int | None
 
 
 def source(
@@ -42,12 +39,6 @@ class ErrorLine:
         message = self.comment or "Failed to parse line"
         return f";ERROR: {message}"
 
-    def object_code(self) -> bytearray:
-        return bytearray()
-
-    def __len__(self):
-        return 0
-
     def __repr__(self):
         return f"ErrorLine('{self.source()}')"
 
@@ -57,12 +48,6 @@ class EmptyLine:
 
     def source(self) -> str:
         return source("", [], None, None)
-
-    def object_code(self) -> bytearray:
-        return bytearray()
-
-    def __len__(self):
-        return 0
 
     def __repr__(self):
         return f"EmptyLine()"
@@ -74,12 +59,6 @@ class CommentLine:
 
     def source(self) -> str:
         return source("", [], None, self.comment)
-
-    def object_code(self) -> bytearray:
-        return bytearray()
-
-    def __len__(self):
-        return 0
 
     def __repr__(self):
         return f"CommentLine('{self.comment}')"
@@ -159,18 +138,19 @@ class MonadicLine:
         return f"MonadicLine({','.join(components)})"
 
 
-def listing(ir: ListableLine) -> List[str]:
-    object_code = ir.object_code()
+def listing(ir: IRLine) -> List[str]:
     oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
-    if len(object_code) <= 3:
-        line_object_code, object_code = object_code, bytearray(0)
-    else:
-        line_object_code = object_code[0:2]
-        object_code = object_code[3:]
     if isinstance(ir, AddressableLine):
         address = f"{ir.address:04X}" if ir.address is not None else 4 * " "
+        object_code = ir.object_code()
+        if len(object_code) <= 3:
+            line_object_code, object_code = object_code, bytearray(0)
+        else:
+            line_object_code = object_code[0:2]
+            object_code = object_code[3:]
     else:
         address = 4 * " "
+        line_object_code, object_code = bytearray(0), bytearray(0)
     lines = [f"{address} {oc_format(line_object_code):6} {ir.source()}"]
     for b in itertools.batched(object_code, 3):
         lines.append(f"{'':4} {oc_format(b): 6}")

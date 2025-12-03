@@ -3,7 +3,7 @@ import cs6th_ch7.expr.tokens as tokens
 from .tokens import Token
 from ..pep10.arguments import Decimal, Identifier
 from ..pep10.symbol import SymbolTable
-from ..pep10.ir import DyadicLine, MonadicLine, ListableLine
+from ..pep10.ir import DyadicLine, MonadicLine, IRLine
 from ..pep10.mnemonics import AddressingMode as AM
 
 
@@ -11,7 +11,7 @@ def expression_string(expression: List[Token]) -> str:
     return " ".join(token.postfix_format() for token in expression)
 
 
-def plus_ir(symbol_table: SymbolTable) -> List[ListableLine]:
+def plus_ir(symbol_table: SymbolTable) -> List[IRLine]:
     return [
         DyadicLine(
             "LDWA", Decimal(2), AM.S, symbol_decl=symbol_table.define("plus")
@@ -21,7 +21,7 @@ def plus_ir(symbol_table: SymbolTable) -> List[ListableLine]:
     ]
 
 
-def times_ir(symbol_table: SymbolTable) -> List[ListableLine]:
+def times_ir(symbol_table: SymbolTable) -> List[IRLine]:
     arg1, arg2, tmp = 6, 4, 0
     return [
         DyadicLine(
@@ -62,9 +62,9 @@ def times_ir(symbol_table: SymbolTable) -> List[ListableLine]:
     ]
 
 
-def to_pep10_ir(expression: List[Token]) -> Sequence[ListableLine]:
+def to_pep10_ir(expression: List[Token]) -> Sequence[IRLine]:
     symbol_table = SymbolTable()
-    ret: List[ListableLine] = []
+    ret: List[IRLine] = []
     for token in expression:
         match type(token):
             case tokens.Decimal:
