@@ -3,7 +3,7 @@ from .symbol import SymbolEntry
 from typing import Protocol
 
 
-class ArgumentType(Protocol):
+class OperandType(Protocol):
     def __str__(self) -> str: ...
     def __int__(self) -> int: ...
 

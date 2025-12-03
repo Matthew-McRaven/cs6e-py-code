@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from .symbol import SymbolEntry
 from .mnemonics import AddressingMode, INSTRUCTION_TYPES, as_int
-from .arguments import ArgumentType
+from .operands import OperandType
 
 
 @runtime_checkable
@@ -13,8 +13,8 @@ class IRLine(Protocol):
 
 
 @runtime_checkable
-class AddressableLine(IRLine, Protocol):
-    address: int | None
+class GeneratesObjectCode(IRLine, Protocol):
+    memory_address: int | None
 
     def object_code(self) -> bytearray: ...
     def __len__(self) -> int: ...
@@ -67,22 +67,22 @@ class CommentLine:
 @dataclass
 class DyadicLine:
     mnemonic: str
-    argument: ArgumentType
+    operand_spec: OperandType
     addressing_mode: AddressingMode
     symbol_decl: SymbolEntry | None = None
     comment: str | None = None
-    address: int | None = None
+    memory_address: int | None = None
 
     def source(self) -> str:
-        args = [str(self.argument), self.addressing_mode.name.lower()]
+        args = [str(self.operand_spec), self.addressing_mode.name.lower()]
         mn = self.mnemonic.upper()
         return source(mn, args, self.symbol_decl, self.comment)
 
     def object_code(self) -> bytearray:
         bits = as_int(self.mnemonic, am=self.addressing_mode)
         mn_bytes = bits.to_bytes(1, signed=False)
-        arg_bytes = int(self.argument).to_bytes(2)
-        return bytearray(mn_bytes + arg_bytes)
+        opr_bytes = int(self.operand_spec).to_bytes(2)
+        return bytearray(mn_bytes + opr_bytes)
 
     def __len__(self) -> int:
         return 3
@@ -95,12 +95,12 @@ class DyadicLine:
     def __repr__(self):
         symbol_text = f"{self.symbol_decl}:" if self.symbol_decl else ""
         components = [
-            f"'{symbol_text}{self.mnemonic} {str(self.argument)},{self.addressing_mode.name.lower()}'"
+            f"'{symbol_text}{self.mnemonic} {str(self.operand_spec)},{self.addressing_mode.name.lower()}'"
         ]
         if self.comment:
             components.append(f"comment={self.comment}")
-        if self.address:
-            components.append(f"address={self.address}")
+        if self.memory_address:
+            components.append(f"memory_address={self.memory_address}")
         return f"DyadicLine({','.join(components)})"
 
 
@@ -109,7 +109,7 @@ class MonadicLine:
     mnemonic: str
     symbol_decl: SymbolEntry | None = None
     comment: str | None = None
-    address: int | None = None
+    memory_address: int | None = None
 
     def source(self) -> str:
         mn = self.mnemonic.upper()
@@ -133,15 +133,19 @@ class MonadicLine:
         components = [f"'{symbol_text}{self.mnemonic}'"]
         if self.comment:
             components.append(f"comment={self.comment}")
-        if self.address:
-            components.append(f"address={self.address}")
+        if self.memory_address:
+            components.append(f"address={self.memory_address}")
         return f"MonadicLine({','.join(components)})"
 
 
 def listing(ir: IRLine) -> List[str]:
     oc_format = lambda oc: "".join(f"{i:02X}" for i in oc)
-    if isinstance(ir, AddressableLine):
-        address = f"{ir.address:04X}" if ir.address is not None else 4 * " "
+    if isinstance(ir, GeneratesObjectCode):
+        address_str = (
+            f"{ir.memory_address:04X}"
+            if ir.memory_address is not None
+            else 4 * " "
+        )
         object_code = ir.object_code()
         if len(object_code) <= 3:
             line_object_code, object_code = object_code, bytearray(0)
@@ -149,9 +153,9 @@ def listing(ir: IRLine) -> List[str]:
             line_object_code = object_code[0:2]
             object_code = object_code[3:]
     else:
-        address = 4 * " "
+        address_str = 4 * " "
         line_object_code, object_code = bytearray(0), bytearray(0)
-    lines = [f"{address} {oc_format(line_object_code):6} {ir.source()}"]
+    lines = [f"{address_str} {oc_format(line_object_code):6} {ir.source()}"]
     for b in itertools.batched(object_code, 3):
         lines.append(f"{'':4} {oc_format(b): 6}")
     return lines

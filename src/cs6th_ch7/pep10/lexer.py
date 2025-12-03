@@ -113,7 +113,7 @@ class Lexer(TokenProducer[Token]):
                     else:
                         self.buffer.seek(prev_pos, os.SEEK_SET)
                         state = Lexer.States.STOP
-                        token = tokens.Hex(as_int)
+                        token = tokens.Hexadecimal(as_int)
 
                 case Lexer.States.SIGN:
                     if ch in string.digits:

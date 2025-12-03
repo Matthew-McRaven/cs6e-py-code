@@ -34,7 +34,7 @@ class Decimal:
 
 
 @dataclass
-class Hex:
+class Hexadecimal:
     value: int
 
 
@@ -53,4 +53,4 @@ class Macro:
     value: str
 
 
-type Token = Empty | Invalid | Comma | Decimal | Hex | Comment | Identifier | Symbol | Dot | String | Macro
+type Token = Empty | Invalid | Comma | Decimal | Hexadecimal | Comment | Identifier | Symbol | Dot | String | Macro

@@ -104,15 +104,15 @@ def test_lexer_sign_needs_digit():
 
 def test_lexer_hexadecimal():
     tk = Lexer(StringIO("0x0 0X000  0x1 0x10 0x10000 "))
-    assert type(tok := next(tk)) is tokens.Hex
+    assert type(tok := next(tk)) is tokens.Hexadecimal
     assert tok.value == 0x0
-    assert type(tok := next(tk)) is tokens.Hex
+    assert type(tok := next(tk)) is tokens.Hexadecimal
     assert tok.value == 0
-    assert type(tok := next(tk)) is tokens.Hex
+    assert type(tok := next(tk)) is tokens.Hexadecimal
     assert tok.value == 1
-    assert type(tok := next(tk)) is tokens.Hex
+    assert type(tok := next(tk)) is tokens.Hexadecimal
     assert tok.value == 0x10
-    assert type(tok := next(tk)) is tokens.Hex
+    assert type(tok := next(tk)) is tokens.Hexadecimal
     assert tok.value == 0x1_00_00
 
 

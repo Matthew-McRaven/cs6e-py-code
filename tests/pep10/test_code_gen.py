@@ -28,7 +28,11 @@ def test_nonunary_object_code():
     assert program_object_code(ir) == bytearray(
         [0x24, 0x00, 0x03, 0x51, 0x00, 0x10, 0x36, 0x00, 0x03]
     )
-    assert ir[0].address == 0 and ir[1].address == 3 and ir[2].address == 6
+    assert (
+        ir[0].memory_address == 0
+        and ir[1].memory_address == 3
+        and ir[2].memory_address == 6
+    )
 
 
 def test_comment_empty():

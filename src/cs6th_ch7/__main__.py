@@ -2,7 +2,7 @@ import argparse
 
 from cs6th_ch7.expr.code_gen import expression_string, to_pep10_ir
 from cs6th_ch7.expr.parser import ExpressionParser
-from .fsm.lexer import Direct, Table, HexDirect
+from .fsm import Direct, Table, HexDirect
 import io
 from .pep10.lexer import Lexer
 from .pep10.code_gen import (
@@ -12,7 +12,6 @@ from .pep10.code_gen import (
     program_source,
 )
 from .pep10.ir import ErrorLine
-from .pep10.macro import MacroRegistry, add_OS_macros
 from .pep10.parser import parse
 from .pep10.symbol import SymbolTable, add_OS_symbols
 import sys
@@ -64,7 +63,7 @@ def exec_lex(args):
 
 
 def parse_wrapper(text: str):
-    st= SymbolTable()
+    st = SymbolTable()
     add_OS_symbols(st)
     ir = parse(text, symbol_table=st)
     return ir

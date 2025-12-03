@@ -12,7 +12,7 @@ class ExpressionParser:
         self._buffer = ParserBuffer(self._lexer)
 
     # 3. <F> -> ( <E> )
-    # 4. <F> -> DECIMAL
+    # 4. <F> -> DEC
     def F(self) -> list[Token]:
         if self._buffer.may_match(tokens.ParenOpen):
             e = self.E()

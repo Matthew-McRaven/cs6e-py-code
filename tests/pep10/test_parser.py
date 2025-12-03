@@ -4,7 +4,7 @@ import typing
 
 import pytest
 
-from cs6th_ch7.pep10.arguments import (
+from cs6th_ch7.pep10.operands import (
     Decimal,
     Hexadecimal,
     Identifier,
@@ -62,14 +62,14 @@ def test_nonunary() -> None:
     item: DyadicLine = cast(DyadicLine, next(par))
     assert type(item) is DyadicLine
     assert item.mnemonic == "BR"
-    assert type(item.argument) is Decimal
+    assert type(item.operand_spec) is Decimal
 
     ret = parse("cat: BR 0x10,x ;comment\n")
     item = cast(DyadicLine, ret[0])
     assert type(item) is DyadicLine, str(item.source())
     assert str(item.symbol_decl) == "cat"
     assert item.mnemonic == "BR"
-    assert type(item.argument) is Hexadecimal
+    assert type(item.operand_spec) is Hexadecimal
     assert item.comment == "comment"
 
     ret = parse("cat: BR cat,i")
@@ -77,8 +77,8 @@ def test_nonunary() -> None:
     assert type(item) is DyadicLine
     assert str(item.symbol_decl) == "cat"
     assert item.mnemonic == "BR"
-    assert type(item.argument) is Identifier
-    arg: Identifier = item.argument
+    assert type(item.operand_spec) is Identifier
+    arg: Identifier = item.operand_spec
     assert str(arg) == "cat"
     assert not arg.symbol.is_undefined()
     assert not arg.symbol.is_multiply_defined()
@@ -104,8 +104,8 @@ def test_nonunary_addr_optional() -> None:
     item: DyadicLine = cast(DyadicLine, ret[0])
     assert type(item) is DyadicLine
     assert item.mnemonic == "BR"
-    assert type(item.argument) is Decimal
-    assert int(item.argument) == 10
+    assert type(item.operand_spec) is Decimal
+    assert int(item.operand_spec) == 10
     assert item.addressing_mode == AddressingMode.I
 
 

@@ -1,7 +1,7 @@
 from typing import List, cast, Sequence
 import cs6th_ch7.expr.tokens as tokens
 from .tokens import Token
-from ..pep10.arguments import Decimal, Identifier
+from ..pep10.operands import Decimal, Identifier
 from ..pep10.symbol import SymbolTable
 from ..pep10.ir import DyadicLine, MonadicLine, IRLine
 from ..pep10.mnemonics import AddressingMode as AM
