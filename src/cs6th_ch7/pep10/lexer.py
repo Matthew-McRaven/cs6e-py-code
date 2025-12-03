@@ -6,12 +6,12 @@ from typing import Literal, List
 
 import cs6th_ch7.pep10.tokens as tokens
 from .tokens import Token
-from cs6th_ch7.utils.buffer import TokenProducer
+from ..utils.buffer import TokenProducer
 
 
 class Lexer(TokenProducer[Token]):
     class States(Enum):
-        START, COMMENT, IDENTIFIER, LEADING0, HEX_PRE = range(0, 5)
+        START, COMMENT, IDENT, LEADING0, HEX_PRE = range(0, 5)
         HEX, SIGN, DEC, STOP = range(5, 9)
 
     def __init__(self, buffer: io.StringIO) -> None:
@@ -50,7 +50,7 @@ class Lexer(TokenProducer[Token]):
                         state = Lexer.States.COMMENT
                     elif ch.isalpha():
                         as_str_list.append(ch)
-                        state = Lexer.States.IDENTIFIER
+                        state = Lexer.States.IDENT
                     elif ch == "0":
                         state = Lexer.States.LEADING0
                     elif ch.isdecimal():
@@ -70,7 +70,7 @@ class Lexer(TokenProducer[Token]):
                     else:
                         as_str_list.append(ch)
 
-                case Lexer.States.IDENTIFIER:
+                case Lexer.States.IDENT:
                     if ch.isalnum() or ch == "_":
                         as_str_list.append(ch)
                     elif ch == ":":
