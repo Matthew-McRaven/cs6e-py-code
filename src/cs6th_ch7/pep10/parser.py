@@ -3,27 +3,22 @@ from typing import cast, List
 from .arguments import Hexadecimal, Decimal, Identifier
 from .ir import IRLine
 from .ir import EmptyLine, ErrorLine, CommentLine, DyadicLine
-from .macro import MacroRegistry
 from .lexer import Lexer
 from .mnemonics import INSTRUCTION_TYPES, AddressingMode
 from .symbol import SymbolTable, SymbolEntry
 import cs6th_ch7.pep10.tokens as tokens
 from .arguments import ArgumentType
-from cs6th_ch7.utils.buffer import ParserBuffer
+from ..utils.buffer import ParserBuffer
 
 """
-1. argument          ::= HEX | DECIMAL | IDENTIFIER
-2. instruction       ::= IDENTIFIER argument COMMA IDENTIFIER
-3. line              ::= instruction [COMMENT]
-4. statemet          ::= [COMMENT  | [SYMBOL] line] EMPTY
+1. argument    ::= HEX | DECIMAL | IDENTIFIER
+2. instruction ::= IDENTIFIER argument COMMA IDENTIFIER
+3. line        ::= instruction [COMMENT]
+4. statement   ::= [COMMENT  | [SYMBOL] line] EMPTY
 """
-
-
 class Parser:
     def __init__(
-        self,
-        buffer: io.StringIO,
-        symbol_table: SymbolTable | None = None,
+        self, buffer: io.StringIO, symbol_table: SymbolTable | None = None
     ):
         self.lexer = Lexer(buffer)
         self._buffer = ParserBuffer(self.lexer)
@@ -54,80 +49,73 @@ class Parser:
             return Identifier(self.symbol_table.reference(ident.value))
         return None
 
-    # instruction    ::= IDENTIFIER argument COMMA IDENTIFIER
+    # instruction ::= IDENTIFIER argument COMMA IDENTIFIER
     def instruction(
-        self, symbol: SymbolEntry | None = None
+        self, symbol_entry: SymbolEntry | None
     ) -> DyadicLine | None:
-        if not (mn := self._buffer.may_match(tokens.Identifier)):
+        if not (mn_token := self._buffer.may_match(tokens.Identifier)):
             return None
-        mn_str = mn.value.upper()
+        mn_str = mn_token.value.upper()
+
         if mn_str not in INSTRUCTION_TYPES:
             raise SyntaxError(f"Unrecognized mnemonic: {mn_str}")
-        if not (argument := self.argument()):
+        if not (arg_ir := self.argument()):
             raise SyntaxError(f"Missing argument")
-        as_int = int(argument)
+
         try:
-            as_int.to_bytes(2, signed=as_int < 0)
+            arg_int = int(arg_ir)
+            arg_int.to_bytes(2, signed=arg_int < 0)
         except OverflowError:
             raise SyntaxError("Number too large")
 
         self._buffer.must_match(tokens.Comma)
-        # Check that addressing mode is a valid string and is allowed for the current mnemonic
+
         addr_str = self._buffer.must_match(tokens.Identifier).value.upper()
         try:
-            addr = cast(AddressingMode, AddressingMode[addr_str])
+            # Check if addressing mode is valid for this mnemonic
+            addr_mode = cast(AddressingMode, AddressingMode[addr_str])
             mn_type = INSTRUCTION_TYPES[mn_str]
-            if not mn_type.allows_addressing_mode(addr):
+            if not mn_type.allows_addressing_mode(addr_mode):
                 err = f"Invalid addressing mode {addr_str} for {mn_str}"
                 raise SyntaxError(err)
         except KeyError:
             raise SyntaxError(f"Unknown addressing mode: {addr_str}")
 
-        return DyadicLine(mn_str, argument, addr, symbol_decl=symbol)
+        return DyadicLine(mn_str, arg_ir, addr_mode, symbol_decl=symbol_entry)
 
-    # line              ::= instruction [COMMENT]
-    def line(self, symbol: SymbolEntry | None = None) -> DyadicLine | None:
-        line: IRLine | None = None
-        if instr := self.instruction(symbol=symbol):
-            line = instr
-        else:
+    # line ::= instruction [COMMENT]
+    def line(self, symbol_entry: SymbolEntry | None) -> DyadicLine | None:
+        return_ir: DyadicLine | None = None
+
+        if not (return_ir := self.instruction(symbol_entry)):
             return None
 
         if comment := self._buffer.may_match(tokens.Comment):
-            line.comment = comment.value
-        return line
+            return_ir.comment = comment.value
+        return return_ir
 
-    # statement         ::= [COMMENT  | [SYMBOL] line] EMPTY
+    # statement ::= [COMMENT  | [SYMBOL] line] EMPTY
     def statement(self) -> IRLine:
-        line: IRLine | None = None
+        return_ir: IRLine | None = None
         if self._buffer.may_match(tokens.Empty):
             return EmptyLine()
-        elif comment := self._buffer.may_match(tokens.Comment):
-            line = CommentLine(comment.value)
+        elif comment_token := self._buffer.may_match(tokens.Comment):
+            return_ir = CommentLine(comment_token.value)
         elif symbol_token := self._buffer.may_match(tokens.Symbol):
-            symbol = self.symbol_table.define(symbol_token.value)
-            if (code := self.line(symbol=symbol)) is None:
+            symbol_entry = self.symbol_table.define(symbol_token.value)
+            if not (return_ir := self.line(symbol_entry)):
                 message = "Symbol declaration must be followed by instruction"
                 raise SyntaxError(message)
-            line = code
-        elif (code := self.line()) is not None:
-            line = code
-        else:
+        elif not (return_ir := self.line(None)):
             raise SyntaxError("Failed to parse line")
 
         self._buffer.must_match(tokens.Empty)
-        return line
+
+        return return_ir
 
 
-def parse(
-    text: str,
-    symbol_table: SymbolTable | None = None,
-    macro_registry: MacroRegistry | None = None,
-) -> List[IRLine]:
-    # Remove trailing whitespace while insuring input is \n terminated.
-    parser = Parser(
-        io.StringIO(text.rstrip() + "\n"),
-        symbol_table=symbol_table,
-    )
+def parse(text: str, symbol_table: SymbolTable | None = None) -> List[IRLine]:
+    # Ensure input is terminated with a single \n.
+    parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table)
 
-    return [line for line in parser]
+    return [item for item in parser]

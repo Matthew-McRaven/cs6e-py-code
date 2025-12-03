@@ -64,9 +64,9 @@ def exec_lex(args):
 
 
 def parse_wrapper(text: str):
-    st, mr = SymbolTable(), MacroRegistry()
-    add_OS_symbols(st), add_OS_macros(mr)
-    ir = parse(text, symbol_table=st, macro_registry=mr)
+    st= SymbolTable()
+    add_OS_symbols(st)
+    ir = parse(text, symbol_table=st)
     return ir
 
 
