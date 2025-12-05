@@ -114,4 +114,5 @@ class Parser:
 def parse(text: str, symbol_table: SymbolTable | None = None) -> List[IRLine]:
     # Ensure input is terminated with a single \n.
     parser = Parser(io.StringIO(text.rstrip() + "\n"), symbol_table)
+    
     return [item for item in parser]
